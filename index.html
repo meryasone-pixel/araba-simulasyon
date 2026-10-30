@@ -3,9 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b2d5b">
 <title>İstanbul’da Sürüş</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&display=swap">
 <style>
+@font-face{font-family:"Bricolage Grotesque";font-weight:500;font-display:swap;src:url(fonts/bricolage-500.woff2) format("woff2")}
+@font-face{font-family:"Bricolage Grotesque";font-weight:800;font-display:swap;src:url(fonts/bricolage-800.woff2) format("woff2")}
 :root{--ink:#fff4e6;--glass:rgba(32,22,44,.55);--accent:#19b3a6;color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:rgba(16,12,26,.62);color-scheme:dark}}
 :root[data-theme="dark"]{--glass:rgba(16,12,26,.62);color-scheme:dark}
@@ -52,12 +54,13 @@ button{font:inherit}
 <small>Ok tuşları/WASD sür, boşluk el freni, H korna, R yeniden başla. Telefon ve tablette ekrandaki tuşları kullan.</small>
 <button id="go">Sürmeye başla</button>
 </div></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="three.min.js"></script>
+<script>window.THREE||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
 <script>
 const R=THREE,$=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a),wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 const C=[-189,-135,-81,-27,27,81,135,189], BR_END=380;
 const renderer=new R.WebGLRenderer({antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 renderer.shadowMap.enabled=true; renderer.shadowMap.type=R.PCFSoftShadowMap;
 document.body.prepend(renderer.domElement);
 const scene=new R.Scene(), cam=new R.PerspectiveCamera(58,1,.5,1400);
@@ -71,7 +74,6 @@ const sun=new R.DirectionalLight(0xffc98a,1.05);
 sun.castShadow=true; sun.shadow.mapSize.set(1024,1024);
 Object.assign(sun.shadow.camera,{left:-75,right:75,top:75,bottom:-75,near:10,far:300});
 scene.add(sun,sun.target);
-
 const wc=document.createElement('canvas'); wc.width=wc.height=64;
 const wx=wc.getContext('2d'); wx.fillStyle='#f2ede4'; wx.fillRect(0,0,64,64);
 for(let a=0;a<2;a++)for(let b=0;b<2;b++){wx.fillStyle=Math.random()<.4?'#ffcf7a':'#3a4558';wx.fillRect(7+a*30,6+b*30,18,20);}
@@ -80,9 +82,8 @@ const mat=(c,o)=>new R.MeshLambertMaterial(Object.assign({color:c},o||{}));
 const bas=c=>new R.MeshBasicMaterial({color:c});
 function slab(w,h,d,c,x,y,z,sh){const m=new R.Mesh(new R.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);m.receiveShadow=true;m.castShadow=!!sh;scene.add(m);return m;}
 function inst(geo,m,n,fn){const im=new R.InstancedMesh(geo,m,n),o=new R.Object3D();let i=0;
-  fn((x,y,z,ry)=>{o.position.set(x,y,z);o.rotation.set(0,ry||0,0);o.updateMatrix();im.setMatrixAt(i++,o.matrix);});
-  im.frustumCulled=false;scene.add(im);return im;}
-
+fn((x,y,z,ry)=>{o.position.set(x,y,z);o.rotation.set(0,ry||0,0);o.updateMatrix();im.setMatrixAt(i++,o.matrix);});
+im.frustumCulled=false;scene.add(im);return im;}
 slab(1700,.2,3000,0x8c7a66,-650,-.1,0);
 slab(4,1.4,3000,0xb5a58c,200,-.3,0);
 const sea=new R.Mesh(new R.PlaneGeometry(1500,3000),new R.MeshPhongMaterial({color:0x1d6b86,shininess:90,specular:0xffc98a}));
@@ -94,45 +95,43 @@ const dx=dc.getContext('2d'); dx.fillStyle='#e9dfc9'; dx.fillRect(0,0,32,8);
 const dash=new R.CanvasTexture(dc); dash.wrapS=R.RepeatWrapping; dash.repeat.set(52,1);
 const dashM=new R.MeshBasicMaterial({map:dash,transparent:true});
 for(const c of C){
-  const a=new R.Mesh(new R.PlaneGeometry(400,.4),dashM); a.rotation.x=-Math.PI/2; a.position.set(0,.05,c); scene.add(a);
-  const b=new R.Mesh(new R.PlaneGeometry(400,.4),dashM); b.rotation.x=-Math.PI/2; b.rotation.z=Math.PI/2; b.position.set(c,.05,0); scene.add(b);
+const a=new R.Mesh(new R.PlaneGeometry(400,.4),dashM); a.rotation.x=-Math.PI/2; a.position.set(0,.05,c); scene.add(a);
+const b=new R.Mesh(new R.PlaneGeometry(400,.4),dashM); b.rotation.x=-Math.PI/2; b.rotation.z=Math.PI/2; b.position.set(c,.05,0); scene.add(b);
 }
-
 // Binalar
 const pal=[0xd9a066,0xe6c9a0,0xb86b4b,0xcdb08a,0xa8845f,0xe9d8bd,0xc77d5a,0x9aa3a8], rects=[];
 function bld(x,z,w,d,h){
-  const g=new R.BoxGeometry(w,h,d), uv=g.attributes.uv;
-  for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*(w+d)/12,uv.getY(i)*h/6);
-  const m=new R.Mesh(g,mat(pal[(Math.random()*pal.length)|0],{map:win}));
-  m.position.set(x,h/2+.3,z); m.castShadow=m.receiveShadow=true; scene.add(m); rects.push([x,z,w/2,d/2]);
+const g=new R.BoxGeometry(w,h,d), uv=g.attributes.uv;
+for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*(w+d)/12,uv.getY(i)*h/6);
+const m=new R.Mesh(g,mat(pal[(Math.random()*pal.length)|0],{map:win}));
+m.position.set(x,h/2+.3,z); m.castShadow=m.receiveShadow=true; scene.add(m); rects.push([x,z,w/2,d/2]);
 }
 const MOSQUE=[-2,-2], GALATA=[2,1];
 for(let i=-3;i<=3;i++)for(let j=-3;j<=3;j++){
-  slab(40,.3,40,0x9c9288,i*54,.15,j*54);
-  if((i===MOSQUE[0]&&j===MOSQUE[1])||(i===GALATA[0]&&j===GALATA[1]))continue;
-  for(const a of[-1,1])for(const b of[-1,1])bld(i*54+a*9.4,j*54+b*9.4,rnd(14.5,17),rnd(14.5,17),rnd(9,30));
+slab(40,.3,40,0x9c9288,i*54,.15,j*54);
+if((i===MOSQUE[0]&&j===MOSQUE[1])||(i===GALATA[0]&&j===GALATA[1]))continue;
+for(const a of[-1,1])for(const b of[-1,1])bld(i*54+a*9.4,j*54+b*9.4,rnd(14.5,17),rnd(14.5,17),rnd(9,30));
 }
 (function(){
-  const cx=MOSQUE[0]*54, cz=MOSQUE[1]*54, stone=0xe0d6c3, lead=0x8791a0;
-  slab(26,12,26,stone,cx,6.3,cz,true);
-  const dome=new R.Mesh(new R.SphereGeometry(11,28,14,0,Math.PI*2,0,Math.PI/2),mat(lead));
-  dome.position.set(cx,12.3,cz); dome.castShadow=true; scene.add(dome);
-  for(const [ox,oz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){
-    const s=new R.Mesh(new R.SphereGeometry(5,16,8,0,Math.PI*2,0,Math.PI/2),mat(lead)); s.position.set(cx+ox*11,12.3,cz+oz*11); scene.add(s);
-    const m=new R.Mesh(new R.CylinderGeometry(.9,1.1,34,12),mat(stone)); m.position.set(cx+ox*17,17.3,cz+oz*17); m.castShadow=true; scene.add(m);
-    const t=new R.Mesh(new R.ConeGeometry(1.3,6,12),mat(lead)); t.position.set(cx+ox*17,37.3,cz+oz*17); scene.add(t);
-    rects.push([cx+ox*17,cz+oz*17,1.3,1.3]);
-  }
-  rects.push([cx,cz,13.2,13.2]);
+const cx=MOSQUE[0]*54, cz=MOSQUE[1]*54, stone=0xe0d6c3, lead=0x8791a0;
+slab(26,12,26,stone,cx,6.3,cz,true);
+const dome=new R.Mesh(new R.SphereGeometry(11,28,14,0,Math.PI*2,0,Math.PI/2),mat(lead));
+dome.position.set(cx,12.3,cz); dome.castShadow=true; scene.add(dome);
+for(const [ox,oz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){
+const s=new R.Mesh(new R.SphereGeometry(5,16,8,0,Math.PI*2,0,Math.PI/2),mat(lead)); s.position.set(cx+ox*11,12.3,cz+oz*11); scene.add(s);
+const m=new R.Mesh(new R.CylinderGeometry(.9,1.1,34,12),mat(stone)); m.position.set(cx+ox*17,17.3,cz+oz*17); m.castShadow=true; scene.add(m);
+const t=new R.Mesh(new R.ConeGeometry(1.3,6,12),mat(lead)); t.position.set(cx+ox*17,37.3,cz+oz*17); scene.add(t);
+rects.push([cx+ox*17,cz+oz*17,1.3,1.3]);
+}
+rects.push([cx,cz,13.2,13.2]);
 })();
 (function(){
-  const cx=GALATA[0]*54, cz=GALATA[1]*54;
-  const t=new R.Mesh(new R.CylinderGeometry(5,5.8,38,24),mat(0xcbb994)); t.position.set(cx,19.3,cz); t.castShadow=true; scene.add(t);
-  const r=new R.Mesh(new R.CylinderGeometry(6.6,6.6,3,24),mat(0xb9a57f)); r.position.set(cx,39.8,cz); scene.add(r);
-  const c=new R.Mesh(new R.ConeGeometry(6.8,12,24),mat(0x46535c)); c.position.set(cx,47.3,cz); c.castShadow=true; scene.add(c);
-  rects.push([cx,cz,6,6]);
+const cx=GALATA[0]*54, cz=GALATA[1]*54;
+const t=new R.Mesh(new R.CylinderGeometry(5,5.8,38,24),mat(0xcbb994)); t.position.set(cx,19.3,cz); t.castShadow=true; scene.add(t);
+const r=new R.Mesh(new R.CylinderGeometry(6.6,6.6,3,24),mat(0xb9a57f)); r.position.set(cx,39.8,cz); scene.add(r);
+const c=new R.Mesh(new R.ConeGeometry(6.8,12,24),mat(0x46535c)); c.position.set(cx,47.3,cz); c.castShadow=true; scene.add(c);
+rects.push([cx,cz,6,6]);
 })();
-
 // Trafik ışıkları ve yaya geçitleri
 const mNS=bas(0x2ee06b), mEW=bas(0xff3b30), LC={g:0x2ee06b,y:0xffc83a,r:0xff3b30};
 function light(ax){const t=(performance.now()/1000)%24,u=ax?t-12:t;return u<0?'r':u<9?'g':u<11?'y':'r';}
@@ -141,7 +140,6 @@ inst(new R.CylinderGeometry(.12,.14,5,6),mat(0x2a2a30),256,p=>{for(const [x,z] o
 inst(new R.BoxGeometry(.6,.6,.6),mNS,128,p=>{for(const [x,z] of ints)for(const a of[-1,1])for(const b of[-1,1])if(a*b<0)p(x+a*8.4,5.3,z+b*8.4);});
 inst(new R.BoxGeometry(.6,.6,.6),mEW,128,p=>{for(const [x,z] of ints)for(const a of[-1,1])for(const b of[-1,1])if(a*b>0)p(x+a*8.4,5.3,z+b*8.4);});
 inst(new R.BoxGeometry(.7,.04,3),bas(0xe9dfc9),2304,p=>{for(const [x,z] of ints)for(const s of[-1,1])for(let i=0;i<9;i++){const o=-5.6+i*1.4;p(x+o,.06,z+s*9.6,0);p(x+s*9.6,.06,z+o,Math.PI/2);}});
-
 // Köprü ve vapur
 slab(BR_END-190,.4,14,0x45434c,(BR_END+190)/2,-.2,0);
 for(const s of[-1,1])slab(BR_END-190,1.1,.4,0xd9cdb8,(BR_END+190)/2,.55,s*7);
@@ -149,7 +147,6 @@ for(let x=230;x<BR_END;x+=40)slab(4,8,10,0x6f6a72,x,-4,0);
 const ferry=new R.Group();
 [[9,3,30,0xf2ede4,0,1,0],[9.2,.8,30.2,0xc0392b,0,-.2,0],[7,2.6,16,0xfaf6ee,0,3.6,-2]].forEach(([w,h,d,c,x,y,z])=>{const m=new R.Mesh(new R.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);ferry.add(m);});
 scene.add(ferry);
-
 // Oyuncunun arabası
 const car3=new R.Group(), shell=new R.Group(); car3.add(shell);
 const bodyM=mat(0x19b3a6), glassM=mat(0x1c2a35), darkM=mat(0x15151a), wheelG=new R.CylinderGeometry(.45,.45,.3,14);
@@ -164,201 +161,192 @@ const wh=[[1.05,1.4],[-1.05,1.4],[1.05,-1.4],[-1.05,-1.4]].map(([x,z])=>{const w
 const sheds=[[30,wh[1]],[52,fb],[68,wh[2]],[80,rb],[92,wh[0]]].map(([t,p])=>({t,p,par:p.parent,pos:p.position.clone(),rot:p.rotation.clone()}));
 const hl=new R.SpotLight(0xfff0d0,1.4,70,.5,.5,1); hl.position.set(0,1,2); hl.target.position.set(0,0,20); car3.add(hl,hl.target);
 scene.add(car3);
-
 // Trafikteki araçlar
 const ais=[], aiPal=[0xf2f2f2,0xb71c1c,0x1a237e,0x37474f,0xffb300,0x2e7d32,0xdadada,0x6d4c41];
 const gB=new R.BoxGeometry(2,.8,4.2), gC=new R.BoxGeometry(1.8,.7,2.1), gW=new R.BoxGeometry(2.1,.5,3.4);
 const hd=c=>c.ax?(c.dir>0?Math.PI/2:-Math.PI/2):(c.dir>0?0:Math.PI);
 const lane=c=>c.ax?c.rc+(c.dir>0?3.5:-3.5):c.rc+(c.dir>0?-3.5:3.5);
 for(let n=0;n<16;n++){
-  const c={ax:n%2,dir:Math.random()<.5?-1:1,rc:C[(Math.random()*8)|0],v:0,cd:0,m:new R.Group()};
-  do{const s=rnd(-170,170);if(c.ax){c.x=s;c.z=lane(c);}else{c.z=s;c.x=lane(c);}}while(Math.hypot(c.x-23.5,c.z+40)<40);
-  c.a=hd(c);
-  const b=new R.Mesh(gB,mat(aiPal[n%aiPal.length])); b.position.y=.85; b.castShadow=true;
-  const k=new R.Mesh(gC,glassM); k.position.set(0,1.5,-.2); k.castShadow=true;
-  const w=new R.Mesh(gW,darkM); w.position.y=.3;
-  c.m.add(b,k,w); scene.add(c.m); ais.push(c);
+const c={ax:n%2,dir:Math.random()<.5?-1:1,rc:C[(Math.random()*8)|0],v:0,cd:0,m:new R.Group()};
+do{const s=rnd(-170,170);if(c.ax){c.x=s;c.z=lane(c);}else{c.z=s;c.x=lane(c);}}while(Math.hypot(c.x-23.5,c.z+40)<40);
+c.a=hd(c);
+const b=new R.Mesh(gB,mat(aiPal[n%aiPal.length])); b.position.y=.85; b.castShadow=true;
+const k=new R.Mesh(gC,glassM); k.position.set(0,1.5,-.2); k.castShadow=true;
+const w=new R.Mesh(gW,darkM); w.position.y=.3;
+c.m.add(b,k,w); scene.add(c.m); ais.push(c);
 }
 function aiStep(c,dt){
-  const s0=c.ax?c.x:c.z, sn=Math.sin(c.a), cs=Math.cos(c.a); let want=11,best=1e9;
-  for(const k of C){const d=(k-s0)*c.dir;if(d>-1&&d<best)best=d;}
-  const st=light(c.ax), dS=best-10;
-  if(st!=='g'&&dS>-1.5&&dS<26&&!(st==='y'&&dS<5))want=Math.min(want,Math.max(0,dS)*1.2);
-  const chk=(ox,oz)=>{const x=ox-c.x,z=oz-c.z,fd=x*sn+z*cs,ld=Math.abs(x*cs-z*sn);if(fd>0&&fd<16&&ld<2.4)want=Math.min(want,Math.max(0,fd-6.5)*.9);};
-  for(const o of ais)if(o!==c)chk(o.x,o.z); chk(car.x,car.z);
-  c.v=Math.max(0,c.v+(c.v<want?3.5:-9)*dt);
-  c.a+=clamp(wrap(hd(c)-c.a),-2.2*dt,2.2*dt);
-  const L=lane(c), kk=Math.min(1,dt*2.5); if(c.ax)c.z+=(L-c.z)*kk; else c.x+=(L-c.x)*kk;
-  c.x+=sn*c.v*dt; c.z+=cs*c.v*dt;
-  const s1=c.ax?c.x:c.z;
-  if(c.cd>0)c.cd-=dt; else for(const k of C){
-    if((s0-k)*(s1-k)<=0&&s0!==s1){
-      const out=(k>=189&&c.dir>0)||(k<=-189&&c.dir<0);
-      if(out||Math.random()<.3){const o=c.ax?c.z:c.x;c.ax=1-c.ax;c.dir=o>150?-1:o<-150?1:(Math.random()<.5?-1:1);c.rc=k;c.cd=3;}
-      break;
-    }
-  }
-  c.m.position.set(c.x,0,c.z); c.m.rotation.y=c.a;
+const s0=c.ax?c.x:c.z, sn=Math.sin(c.a), cs=Math.cos(c.a); let want=11,best=1e9;
+for(const k of C){const d=(k-s0)*c.dir;if(d>-1&&d<best)best=d;}
+const st=light(c.ax), dS=best-10;
+if(st!=='g'&&dS>-1.5&&dS<26&&!(st==='y'&&dS<5))want=Math.min(want,Math.max(0,dS)*1.2);
+const chk=(ox,oz)=>{const x=ox-c.x,z=oz-c.z,fd=x*sn+z*cs,ld=Math.abs(x*cs-z*sn);if(fd>0&&fd<16&&ld<2.4)want=Math.min(want,Math.max(0,fd-6.5)*.9);};
+for(const o of ais)if(o!==c)chk(o.x,o.z); chk(car.x,car.z);
+c.v=Math.max(0,c.v+(c.v<want?3.5:-9)*dt);
+c.a+=clamp(wrap(hd(c)-c.a),-2.2*dt,2.2*dt);
+const L=lane(c), kk=Math.min(1,dt*2.5); if(c.ax)c.z+=(L-c.z)*kk; else c.x+=(L-c.x)*kk;
+c.x+=sn*c.v*dt; c.z+=cs*c.v*dt;
+const s1=c.ax?c.x:c.z;
+if(c.cd>0)c.cd-=dt; else for(const k of C){
+if((s0-k)*(s1-k)<=0&&s0!==s1){
+const out=(k>=189&&c.dir>0)||(k<=-189&&c.dir<0);
+if(out||Math.random()<.3){const o=c.ax?c.z:c.x;c.ax=1-c.ax;c.dir=o>150?-1:o<-150?1:(Math.random()<.5?-1:1);c.rc=k;c.cd=3;}
+break;
 }
-
+}
+c.m.position.set(c.x,0,c.z); c.m.rotation.y=c.a;
+}
 // Yayalar
 const peds=[], gP=new R.CylinderGeometry(.22,.26,.95,8), gH=new R.SphereGeometry(.2,8,6), skin=mat(0xe0b48f);
 const clothes=[0xb23a48,0x2a6f97,0x6a994e,0xf2cc8f,0x6d597a,0x333333,0xe07a5f];
 for(let n=0;n<30;n++){
-  const p={cx:((Math.random()*7)|0)*54-162,cz:((Math.random()*7)|0)*54-162,s:rnd(0,152),dir:Math.random()<.5?-1:1,ko:0,ph:rnd(0,6),m:new R.Group(),x:0,z:0};
-  const b=new R.Mesh(gP,mat(clothes[n%clothes.length])); b.position.y=.48; const h=new R.Mesh(gH,skin); h.position.y=1.15;
-  b.castShadow=true; p.m.add(b,h); scene.add(p.m); peds.push(p);
+const p={cx:((Math.random()*7)|0)*54-162,cz:((Math.random()*7)|0)*54-162,s:rnd(0,152),dir:Math.random()<.5?-1:1,ko:0,ph:rnd(0,6),m:new R.Group(),x:0,z:0};
+const b=new R.Mesh(gP,mat(clothes[n%clothes.length])); b.position.y=.48; const h=new R.Mesh(gH,skin); h.position.y=1.15;
+b.castShadow=true; p.m.add(b,h); scene.add(p.m); peds.push(p);
 }
 function pedPos(p){const s=((p.s%152)+152)%152, t=s%38-19, q=[[t,-19],[19,t],[-t,19],[-19,-t]][(s/38)|0];p.x=p.cx+q[0];p.z=p.cz+q[1];}
-
 // Hasar, enkaz, duman
 const debris=[], puffs=[], pg=new R.SphereGeometry(.4,8,6);
 for(let i=0;i<24;i++){const m=new R.Mesh(pg,new R.MeshBasicMaterial({color:0x777777,transparent:true,opacity:0}));m.visible=false;scene.add(m);puffs.push({m,t:0});}
 function eject(p){scene.attach(p);debris.push({m:p,v:new R.Vector3(rnd(-6,6),rnd(4,8),rnd(-6,6)),w:new R.Vector3(rnd(-6,6),rnd(-6,6),rnd(-6,6)),t:0});}
 function puff(){const q=puffs.find(p=>p.t<=0);if(!q)return;q.t=1.4;q.m.visible=true;q.m.position.set(car.x+Math.sin(car.a)*1.8+rnd(-.3,.3),1.2,car.z+Math.cos(car.a)*1.8+rnd(-.3,.3));}
-
 let dmg=0, score=100, shake=0, hitCd=0, twY=0, twZ=0, pitch=0, pv=0, inX=false, totaled=false, puffT=0;
 const car={x:23.5,z:-40,a:0,v:0}; cam.position.set(23.5,6,-52);
 function look(){
-  bodyM.color.setHex(0x19b3a6).lerp(new R.Color(0x3a3a3a),clamp(dmg/130,0,1));
-  hood.rotation.x=-dmg*.011; hood.position.y=.72+dmg*.004; shell.scale.z=1-dmg*.0015;
-  for(const s of sheds)if(dmg>=s.t&&s.p.parent)eject(s.p);
-  $('dm').style.width=dmg+'%';
+bodyM.color.setHex(0x19b3a6).lerp(new R.Color(0x3a3a3a),clamp(dmg/130,0,1));
+hood.rotation.x=-dmg*.011; hood.position.y=.72+dmg*.004; shell.scale.z=1-dmg*.0015;
+for(const s of sheds)if(dmg>=s.t&&s.p.parent)eject(s.p);
+$('dm').style.width=dmg+'%';
 }
 function reset(){
-  dmg=0;score=100;totaled=false;twY=twZ=0;Object.assign(car,{x:23.5,z:-40,a:0,v:0});
-  for(const s of sheds){s.par.add(s.p);s.p.position.copy(s.pos);s.p.rotation.copy(s.rot);}
-  debris.length=0; look(); $('score').textContent=score;
+dmg=0;score=100;totaled=false;twY=twZ=0;Object.assign(car,{x:23.5,z:-40,a:0,v:0});
+for(const s of sheds){s.par.add(s.p);s.p.position.copy(s.pos);s.p.rotation.copy(s.rot);}
+debris.length=0; look(); $('score').textContent=score;
 }
 let mt; function msg(t){const e=$('msg');e.textContent=t;e.style.opacity=1;clearTimeout(mt);mt=setTimeout(()=>e.style.opacity=0,1800);}
 function pts(n){score=clamp(score+n,0,100);$('score').textContent=score;}
-
 // Ses
 let ac,osc,gain;
 function startAudio(){try{
-  ac=new(window.AudioContext||window.webkitAudioContext)();
-  osc=ac.createOscillator(); osc.type='sawtooth';
-  const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=420;
-  gain=ac.createGain(); gain.gain.value=.03; osc.connect(f); f.connect(gain); gain.connect(ac.destination); osc.start();
+ac=new(window.AudioContext||window.webkitAudioContext)();
+osc=ac.createOscillator(); osc.type='sawtooth';
+const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=420;
+gain=ac.createGain(); gain.gain.value=.03; osc.connect(f); f.connect(gain); gain.connect(ac.destination); osc.start();
 }catch(e){}}
 function crash(k){
-  if(!ac)return; const n=ac.sampleRate*.5|0, b=ac.createBuffer(1,n,ac.sampleRate), d=b.getChannelData(0);
-  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
-  const s=ac.createBufferSource(); s.buffer=b; const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=900+k*2500;
-  const g=ac.createGain(); g.gain.value=k*.9; s.connect(f); f.connect(g); g.connect(ac.destination); s.start();
-  const o=ac.createOscillator(), og=ac.createGain(); o.frequency.setValueAtTime(130,ac.currentTime); o.frequency.exponentialRampToValueAtTime(40,ac.currentTime+.3);
-  og.gain.setValueAtTime(k*.6,ac.currentTime); og.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.35); o.connect(og); og.connect(ac.destination); o.start(); o.stop(ac.currentTime+.4);
+if(!ac)return; const n=ac.sampleRate*.5|0, b=ac.createBuffer(1,n,ac.sampleRate), d=b.getChannelData(0);
+for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+const s=ac.createBufferSource(); s.buffer=b; const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=900+k*2500;
+const g=ac.createGain(); g.gain.value=k*.9; s.connect(f); f.connect(g); g.connect(ac.destination); s.start();
+const o=ac.createOscillator(), og=ac.createGain(); o.frequency.setValueAtTime(130,ac.currentTime); o.frequency.exponentialRampToValueAtTime(40,ac.currentTime+.3);
+og.gain.setValueAtTime(k*.6,ac.currentTime); og.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.35); o.connect(og); og.connect(ac.destination); o.start(); o.stop(ac.currentTime+.4);
 }
 function horn(){if(!ac)return;for(const fq of[420,530]){const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=fq;g.gain.setValueAtTime(.05,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.4);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.42);}}
 function impact(vn){
-  if(vn<1.2||hitCd>0)return; hitCd=.3; const k=clamp(vn/18,.12,1);
-  crash(k); dmg=Math.min(100,dmg+vn*1.6); const p=Math.max(1,Math.round(vn*.6)); pts(-p); msg('Çarpışma −'+p);
-  shake=Math.max(shake,k); twY=clamp(twY+rnd(-.05,.05)*k*3,-.15,.15); twZ=clamp(twZ+rnd(-.04,.04)*k*3,-.1,.1); look();
-  if(dmg>=100&&!totaled){totaled=true;msg('Araba parçalandı. R ile yeniden başla');}
+if(vn<1.2||hitCd>0)return; hitCd=.3; const k=clamp(vn/18,.12,1);
+crash(k); dmg=Math.min(100,dmg+vn*1.6); const p=Math.max(1,Math.round(vn*.6)); pts(-p); msg('Çarpışma −'+p);
+shake=Math.max(shake,k); twY=clamp(twY+rnd(-.05,.05)*k*3,-.15,.15); twZ=clamp(twZ+rnd(-.04,.04)*k*3,-.1,.1); look();
+if(dmg>=100&&!totaled){totaled=true;msg('Araba parçalandı. R ile yeniden başla');}
 }
-
 // Kontroller
 const keys={up:0,down:0,left:0,right:0,space:0};
 const map={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right',' ':'space'};
 addEventListener('keydown',e=>{if(map[e.key]){keys[map[e.key]]=1;e.preventDefault();}if(e.key==='h'||e.key==='H')horn();if(e.key==='r'||e.key==='R')reset();});
 addEventListener('keyup',e=>{if(map[e.key])keys[map[e.key]]=0;});
 document.querySelectorAll('.pad button').forEach(b=>{
-  const k=b.dataset.k, set=v=>{keys[k]=v;b.classList.toggle('on',!!v);};
-  b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);set(1);});
-  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>b.addEventListener(t,()=>set(0)));
+const k=b.dataset.k, set=v=>{keys[k]=v;b.classList.toggle('on',!!v);};
+b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);set(1);});
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>b.addEventListener(t,()=>set(0)));
 });
 $('reset').onclick=reset;
 let playing=false, lastArea='';
 $('go').onclick=()=>{$('start').style.display='none';playing=true;startAudio();};
 function area(){
-  if(car.x>200)return'Galata Köprüsü';
-  if(Math.hypot(car.x-MOSQUE[0]*54,car.z-MOSQUE[1]*54)<75)return'Sultanahmet';
-  if(Math.hypot(car.x-GALATA[0]*54,car.z-GALATA[1]*54)<75)return'Galata Kulesi';
-  return car.x<-70?'Fatih':'Beyoğlu';
+if(car.x>200)return'Galata Köprüsü';
+if(Math.hypot(car.x-MOSQUE[0]*54,car.z-MOSQUE[1]*54)<75)return'Sultanahmet';
+if(Math.hypot(car.x-GALATA[0]*54,car.z-GALATA[1]*54)<75)return'Galata Kulesi';
+return car.x<-70?'Fatih':'Beyoğlu';
 }
-
 function step(dt){
-  const up=keys.up&&!totaled, dn=keys.down, vmax=totaled?0:36*(1-dmg/150);
-  if(up)car.v+=(car.v<0?30:15)*dt;
-  if(dn)car.v-=(car.v>0?30:10)*dt;
-  car.v-=car.v*.25*dt;
-  if(!up&&!dn)car.v-=Math.sign(car.v)*Math.min(Math.abs(car.v),5*dt);
-  if(keys.space||totaled)car.v-=Math.sign(car.v)*Math.min(Math.abs(car.v),28*dt);
-  car.v=clamp(car.v,-8,vmax);
-  const steer=(keys.left?1:0)-(keys.right?1:0);
-  car.a+=(steer*1.9*clamp(car.v/6,-1,1)*(1-Math.min(Math.abs(car.v)/70,.5))+(dmg>30?.12*car.v/36:0))*dt;
-  car.x+=Math.sin(car.a)*car.v*dt; car.z+=Math.cos(car.a)*car.v*dt;
-  if(car.x<-205){car.x=-205;car.v*=.6;}
-  if(car.x<200)car.z=clamp(car.z,-205,205); else{car.z=clamp(car.z,-5.5,5.5);car.x=Math.min(car.x,BR_END);}
-
-  const fx=Math.sin(car.a), fz=Math.cos(car.a), cs=[1.3,0,-1.3];
-  for(const off of cs){
-    const px0=car.x+fx*off, pz0=car.z+fz*off;
-    for(const [x,z,hw,hd2] of rects){
-      if(Math.abs(x-px0)>hw+3||Math.abs(z-pz0)>hd2+3)continue;
-      const qx=clamp(px0,x-hw,x+hw), qz=clamp(pz0,z-hd2,z+hd2); let ddx=px0-qx, ddz=pz0-qz, d=Math.hypot(ddx,ddz);
-      if(d<1.15){
-        if(d<1e-4){ddx=px0-x;ddz=pz0-z;d=Math.hypot(ddx,ddz)||1;}
-        const nx=ddx/d,nz=ddz/d,o=1.15-d; car.x+=nx*o; car.z+=nz*o;
-        const vn=-(fx*nx+fz*nz)*car.v; impact(vn); car.v*=vn>4?.5:.93;
-      }
-    }
-    for(const c of ais){
-      for(const o2 of[1.1,-1.1]){
-        const ox=c.x+Math.sin(c.a)*o2, oz=c.z+Math.cos(c.a)*o2, ddx=px0-ox, ddz=pz0-oz, d=Math.hypot(ddx,ddz);
-        if(d<2.2&&d>1e-4){
-          const nx=ddx/d,nz=ddz/d,o=2.2-d; car.x+=nx*o*.55; car.z+=nz*o*.55; c.x-=nx*o*.45; c.z-=nz*o*.45;
-          const vn=-((fx*car.v-Math.sin(c.a)*c.v)*nx+(fz*car.v-Math.cos(c.a)*c.v)*nz); impact(vn); car.v*=.85; c.v*=.5;
-        }
-      }
-    }
-    for(const p of peds){
-      if(p.ko>0||Math.abs(car.v)<1)continue;
-      if(Math.hypot(px0-p.x,pz0-p.z)<1.5){p.ko=4;p.vx=fx*car.v*.5;p.vz=fz*car.v*.5;pts(-15);msg('Yayaya çarptın −15');crash(.25);}
-    }
-  }
-  // Kırmızı ışık
-  let bx=C[0],bz=C[0]; for(const k of C){if(Math.abs(k-car.x)<Math.abs(bx-car.x))bx=k;if(Math.abs(k-car.z)<Math.abs(bz-car.z))bz=k;}
-  const inside=Math.abs(car.x-bx)<6.5&&Math.abs(car.z-bz)<6.5;
-  if(inside&&!inX&&Math.abs(car.v)>3&&light(Math.abs(fx)>.7071?1:0)==='r'){pts(-10);msg('Kırmızıda geçtin −10');}
-  inX=inside;
-  if(osc){osc.frequency.value=48+Math.abs(car.v)*3.2;gain.gain.value=totaled?0:.03+(up?.03:0);}
-  const acc=(car.v-pv)/Math.max(dt,.001); pv=car.v; pitch+=(clamp(-acc*.004,-.06,.06)-pitch)*Math.min(1,dt*6);
-  if(dmg>45){puffT-=dt;if(puffT<=0){puff();puffT=dmg>75?.06:.14;}}
-  return steer;
+const up=keys.up&&!totaled, dn=keys.down, vmax=totaled?0:36*(1-dmg/150);
+if(up)car.v+=(car.v<0?30:15)*dt;
+if(dn)car.v-=(car.v>0?30:10)*dt;
+car.v-=car.v*.25*dt;
+if(!up&&!dn)car.v-=Math.sign(car.v)*Math.min(Math.abs(car.v),5*dt);
+if(keys.space||totaled)car.v-=Math.sign(car.v)*Math.min(Math.abs(car.v),28*dt);
+car.v=clamp(car.v,-8,vmax);
+const steer=(keys.left?1:0)-(keys.right?1:0);
+car.a+=(steer*1.9*clamp(car.v/6,-1,1)*(1-Math.min(Math.abs(car.v)/70,.5))+(dmg>30?.12*car.v/36:0))*dt;
+car.x+=Math.sin(car.a)*car.v*dt; car.z+=Math.cos(car.a)*car.v*dt;
+if(car.x<-205){car.x=-205;car.v*=.6;}
+if(car.x<200)car.z=clamp(car.z,-205,205); else{car.z=clamp(car.z,-5.5,5.5);car.x=Math.min(car.x,BR_END);}
+const fx=Math.sin(car.a), fz=Math.cos(car.a), cs=[1.3,0,-1.3];
+for(const off of cs){
+const px0=car.x+fx*off, pz0=car.z+fz*off;
+for(const [x,z,hw,hd2] of rects){
+if(Math.abs(x-px0)>hw+3||Math.abs(z-pz0)>hd2+3)continue;
+const qx=clamp(px0,x-hw,x+hw), qz=clamp(pz0,z-hd2,z+hd2); let ddx=px0-qx, ddz=pz0-qz, d=Math.hypot(ddx,ddz);
+if(d<1.15){
+if(d<1e-4){ddx=px0-x;ddz=pz0-z;d=Math.hypot(ddx,ddz)||1;}
+const nx=ddx/d,nz=ddz/d,o=1.15-d; car.x+=nx*o; car.z+=nz*o;
+const vn=-(fx*nx+fz*nz)*car.v; impact(vn); car.v*=vn>4?.5:.93;
 }
-
+}
+for(const c of ais){
+for(const o2 of[1.1,-1.1]){
+const ox=c.x+Math.sin(c.a)*o2, oz=c.z+Math.cos(c.a)*o2, ddx=px0-ox, ddz=pz0-oz, d=Math.hypot(ddx,ddz);
+if(d<2.2&&d>1e-4){
+const nx=ddx/d,nz=ddz/d,o=2.2-d; car.x+=nx*o*.55; car.z+=nz*o*.55; c.x-=nx*o*.45; c.z-=nz*o*.45;
+const vn=-((fx*car.v-Math.sin(c.a)*c.v)*nx+(fz*car.v-Math.cos(c.a)*c.v)*nz); impact(vn); car.v*=.85; c.v*=.5;
+}
+}
+}
+for(const p of peds){
+if(p.ko>0||Math.abs(car.v)<1)continue;
+if(Math.hypot(px0-p.x,pz0-p.z)<1.5){p.ko=4;p.vx=fx*car.v*.5;p.vz=fz*car.v*.5;pts(-15);msg('Yayaya çarptın −15');crash(.25);}
+}
+}
+// Kırmızı ışık
+let bx=C[0],bz=C[0]; for(const k of C){if(Math.abs(k-car.x)<Math.abs(bx-car.x))bx=k;if(Math.abs(k-car.z)<Math.abs(bz-car.z))bz=k;}
+const inside=Math.abs(car.x-bx)<6.5&&Math.abs(car.z-bz)<6.5;
+if(inside&&!inX&&Math.abs(car.v)>3&&light(Math.abs(fx)>.7071?1:0)==='r'){pts(-10);msg('Kırmızıda geçtin −10');}
+inX=inside;
+if(osc){osc.frequency.value=48+Math.abs(car.v)*3.2;gain.gain.value=totaled?0:.03+(up?.03:0);}
+const acc=(car.v-pv)/Math.max(dt,.001); pv=car.v; pitch+=(clamp(-acc*.004,-.06,.06)-pitch)*Math.min(1,dt*6);
+if(dmg>45){puffT-=dt;if(puffT<=0){puff();puffT=dmg>75?.06:.14;}}
+return steer;
+}
 let tPrev=0;
 function frame(t){
-  const dt=Math.min((t-(tPrev||t))/1000,.05); tPrev=t; let steer=0;
-  hitCd=Math.max(0,hitCd-dt);
-  if(playing)steer=step(dt);
-  for(const c of ais)aiStep(c,dt);
-  for(const p of peds){
-    if(p.ko>0){p.ko-=dt;p.x+=p.vx*dt;p.z+=p.vz*dt;p.vx*=.93;p.vz*=.93;p.m.rotation.z=Math.PI/2;p.m.position.set(p.x,.25,p.z);if(p.ko<=0){p.m.rotation.z=0;}}
-    else{p.s+=p.dir*1.4*dt;pedPos(p);p.m.position.set(p.x,Math.abs(Math.sin(t/180+p.ph))*.05,p.z);}
-  }
-  for(let i=debris.length-1;i>=0;i--){
-    const d=debris[i],m=d.m; d.v.y-=22*dt; m.position.addScaledVector(d.v,dt);
-    if(m.position.y<.3){m.position.y=.3;d.v.y*=-.35;d.v.x*=.7;d.v.z*=.7;d.w.multiplyScalar(.7);}
-    m.rotation.x+=d.w.x*dt;m.rotation.y+=d.w.y*dt;m.rotation.z+=d.w.z*dt;
-  }
-  for(const q of puffs)if(q.t>0){q.t-=dt;q.m.position.y+=2.5*dt;q.m.scale.setScalar(1+(1.4-q.t)*1.5);q.m.material.opacity=Math.max(0,q.t/1.4)*.55;if(q.t<=0)q.m.visible=false;}
-  car3.position.set(car.x,0,car.z); car3.rotation.y=car.a;
-  shell.rotation.set(pitch,twY,twZ+steer*car.v*.0025);
-  const back=11+car.v*.08, k=Math.min(1,dt*4);
-  cam.position.x+=(car.x-Math.sin(car.a)*back-cam.position.x)*k;
-  cam.position.z+=(car.z-Math.cos(car.a)*back-cam.position.z)*k;
-  cam.position.y+=(5.2+car.v*.02-cam.position.y)*k;
-  if(shake>.01){cam.position.x+=rnd(-1,1)*shake*.5;cam.position.y+=rnd(-1,1)*shake*.35;shake*=.9;}
-  cam.lookAt(car.x+Math.sin(car.a)*6,1.5,car.z+Math.cos(car.a)*6);
-  cam.fov=58+Math.abs(car.v)*.35; cam.updateProjectionMatrix();
-  sun.position.set(car.x+60,80,car.z+30); sun.target.position.set(car.x,0,car.z);
-  mNS.color.setHex(LC[light(0)]); mEW.color.setHex(LC[light(1)]);
-  ferry.position.set(300,-.4,((t/1000*6+300)%700)-350); sea.position.y=-.8+Math.sin(t/900)*.06;
-  const a=area(); if(a!==lastArea){$('where').textContent=a;lastArea=a;}
-  $('kmh').textContent=Math.round(Math.abs(car.v)*3.6);
-  renderer.render(scene,cam); requestAnimationFrame(frame);
+const dt=Math.min((t-(tPrev||t))/1000,.05); tPrev=t; let steer=0;
+hitCd=Math.max(0,hitCd-dt);
+if(playing)steer=step(dt);
+for(const c of ais)aiStep(c,dt);
+for(const p of peds){
+if(p.ko>0){p.ko-=dt;p.x+=p.vx*dt;p.z+=p.vz*dt;p.vx*=.93;p.vz*=.93;p.m.rotation.z=Math.PI/2;p.m.position.set(p.x,.25,p.z);if(p.ko<=0){p.m.rotation.z=0;}}
+else{p.s+=p.dir*1.4*dt;pedPos(p);p.m.position.set(p.x,Math.abs(Math.sin(t/180+p.ph))*.05,p.z);}
+}
+for(let i=debris.length-1;i>=0;i--){
+const d=debris[i],m=d.m; d.v.y-=22*dt; m.position.addScaledVector(d.v,dt);
+if(m.position.y<.3){m.position.y=.3;d.v.y*=-.35;d.v.x*=.7;d.v.z*=.7;d.w.multiplyScalar(.7);}
+m.rotation.x+=d.w.x*dt;m.rotation.y+=d.w.y*dt;m.rotation.z+=d.w.z*dt;
+}
+for(const q of puffs)if(q.t>0){q.t-=dt;q.m.position.y+=2.5*dt;q.m.scale.setScalar(1+(1.4-q.t)*1.5);q.m.material.opacity=Math.max(0,q.t/1.4)*.55;if(q.t<=0)q.m.visible=false;}
+car3.position.set(car.x,0,car.z); car3.rotation.y=car.a;
+shell.rotation.set(pitch,twY,twZ+steer*car.v*.0025);
+const back=11+car.v*.08, k=Math.min(1,dt*4);
+cam.position.x+=(car.x-Math.sin(car.a)*back-cam.position.x)*k;
+cam.position.z+=(car.z-Math.cos(car.a)*back-cam.position.z)*k;
+cam.position.y+=(5.2+car.v*.02-cam.position.y)*k;
+if(shake>.01){cam.position.x+=rnd(-1,1)*shake*.5;cam.position.y+=rnd(-1,1)*shake*.35;shake*=.9;}
+cam.lookAt(car.x+Math.sin(car.a)*6,1.5,car.z+Math.cos(car.a)*6);
+cam.fov=58+Math.abs(car.v)*.35; cam.updateProjectionMatrix();
+sun.position.set(car.x+60,80,car.z+30); sun.target.position.set(car.x,0,car.z);
+mNS.color.setHex(LC[light(0)]); mEW.color.setHex(LC[light(1)]);
+ferry.position.set(300,-.4,((t/1000*6+300)%700)-350); sea.position.y=-.8+Math.sin(t/900)*.06;
+const a=area(); if(a!==lastArea){$('where').textContent=a;lastArea=a;}
+$('kmh').textContent=Math.round(Math.abs(car.v)*3.6);
+renderer.render(scene,cam); requestAnimationFrame(frame);
 }
 function resize(){renderer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();}
 addEventListener('resize',resize); resize(); look(); requestAnimationFrame(frame);

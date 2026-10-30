@@ -1,0 +1,8 @@
+{
+  "appId": "com.meryasone.istanbulsurus",
+  "appName": "İstanbul’da Sürüş",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#2b2d5b"
+  }
+}

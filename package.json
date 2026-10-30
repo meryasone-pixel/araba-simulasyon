@@ -1,0 +1,20 @@
+{
+  "name": "istanbulsurus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "İstanbul’da Sürüş — 3D driving game",
+  "scripts": {
+    "build": "node scripts/copy-web.mjs",
+    "sync": "npm run build && npx cap sync android",
+    "open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.6.0",
+    "sharp": "^0.35.5"
+  }
+}
